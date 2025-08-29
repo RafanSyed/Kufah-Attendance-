@@ -13,3 +13,44 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Student {
+  id         String       @id @default(cuid())
+  firstName  String
+  lastName   String
+  email      String       @unique
+  phone      String?
+  attendance Attendance[]
+}
+
+model Teacher {
+  id         String       @id @default(cuid())
+  firstName  String
+  lastName   String
+  email      String       @unique
+  classes    Class[]
+}
+
+model Class {
+  id         String       @id @default(cuid())
+  name       String
+  teacherId  String
+  teacher    Teacher      @relation(fields: [teacherId], references: [id])
+  attendance Attendance[]
+}
+
+model Attendance {
+  id                  String    @id @default(cuid())
+  studentId           String
+  classId             String
+  date                DateTime  @default(now())  // the day of the session
+  online              Boolean   @default(false)  // did they attend online
+  inPerson            Boolean   @default(false)  // did they attend in person
+  recording           Boolean   @default(false)  // did they watch recording
+  absent              Boolean   @default(false)
+  attendanceGrade     Float?    // grade for this session
+  student             Student   @relation(fields: [studentId], references: [id])
+  class               Class     @relation(fields: [classId], references: [id])
+
+  @@unique([studentId, classId, date]) // one record per student per class per day
+}
